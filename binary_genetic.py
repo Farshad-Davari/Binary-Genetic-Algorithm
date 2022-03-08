@@ -2,14 +2,18 @@ from numpy.random import rand, randint
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Stage 1 : Parameters
 bounds = [[-3, 12.1], [4.1, 5.8]]
 iteration = 100
 bits = 20 
 popSize = 100
 crossoverRate = 0.8
 mutationRate = 0.01
+
+# Stage 2 : Initial Population
 pop = [randint(0, 2, bits*len(bounds)).tolist() for _ in range(popSize)]
 
+# Objective Function
 def objectiveFunction(I):
   x = I[0]
   y = I[1]
@@ -17,7 +21,34 @@ def objectiveFunction(I):
   objectiveMax = 1 / (1 + objectiveMin)
   return objectiveMax
 
-# ok
+# Stage 3 : Decoding
+def decoding(bounds, bits, chromosome):
+  realChromosome = list() #empty sequence
+  for i in range(len(bounds)):
+    st, en = i * bits, (i*bits) + bits #extract the chromosome
+    sub = chromosome[st:en]
+    chars = ''.join([str(s) for s in sub]) #convert to chars
+    integer = int(chars, 2) #convert to integer
+    realValue = bounds[i][0] + (integer / (2**bits)) * (bounds[i][1] - bounds[i][0])
+    realChromosome.append(realValue)
+  return realChromosome
+
+# Stage 4 and 5 : Evaluation and Selection
+def selection(pop, fitness, popSize):
+  nextGeneration = list() #empty sequence
+  elite = np.argmax(fitness) #argmax => return indices of maximum value along an axis
+  nextGeneration.append(pop[elite]) #keep the best
+  P = [f / sum(fitness) for f in fitness]
+  index = list(range(int(len(pop))))
+  indexSelected = np.random.choice(index, size = popSize - 1, replace = False, p = P) #choice => generate a random sample of a given 1-d array
+  s = 0
+  for j in range(popSize - 1):
+    nextGeneration.append(pop[indexSelected[s]])
+    s += 1
+
+  return nextGeneration
+  
+# Stage 6 : Crossover
 def crossover(pop, crossoverRate):
   offspring = list() #empty sequence
   for i in range(int(len(pop) / 2)):
@@ -41,7 +72,7 @@ def crossover(pop, crossoverRate):
 
   return offspring
 
-# ok
+# Stage 7 : Mutation
 def mutation(pop, mutationRate):
   offspring = list() #empty sequence
   for i in range(int(len(pop))):
@@ -60,34 +91,7 @@ def mutation(pop, mutationRate):
 
   return offspring
 
-# not ok
-def selection(pop, fitness, popSize):
-  nextGeneration = list() #empty sequence
-  elite = np.argmax(fitness) #argmax => return indices of maximum value along an axis
-  nextGeneration.append(pop[elite]) #keep the best
-  P = [f / sum(fitness) for f in fitness]
-  index = list(range(int(len(pop))))
-  indexSelected = np.random.choice(index, size = popSize - 1, replace = False, p = P) #choice => generate a random sample of a given 1-d array
-  s = 0
-  for j in range(popSize - 1):
-    nextGeneration.append(pop[indexSelected[s]])
-    s += 1
-
-  return nextGeneration  
-
-# ok
-def decoding(bounds, bits, chromosome):
-  realChromosome = list() #empty sequence
-  for i in range(len(bounds)):
-    st, en = i * bits, (i*bits) + bits #extract the chromosome
-    sub = chromosome[st:en]
-    chars = ''.join([str(s) for s in sub]) #convert to chars
-    integer = int(chars, 2) #convert to integer
-    realValue = bounds[i][0] + (integer / (2**bits)) * (bounds[i][1] - bounds[i][0])
-    realChromosome.append(realValue)
-  return realChromosome
-
-# main program
+# Main Program
 bestFitness = []
 for gen in range(iteration):
   offspring = crossover(pop, crossoverRate)
