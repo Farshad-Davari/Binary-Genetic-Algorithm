@@ -4,4 +4,4 @@
 
 </br>
 
-<p>A binary genetic algorithm with python</p>
+<p align="center">A binary genetic algorithm with python</p>
