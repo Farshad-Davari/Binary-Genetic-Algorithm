@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Stage 1 : Parameters
 bounds = [[-3, 12.1], [4.1, 5.8]]
 iteration = 100
-bits = 20 
+bits = 18
 popSize = 100
 crossoverRate = 0.8
 mutationRate = 0.01
@@ -18,17 +18,16 @@ def objectiveFunction(I):
   x = I[0]
   y = I[1]
   objectiveMin = 21.5 + x*np.sin(4*np.pi*x) + y*np.sin(20*np.pi*y)
-  objectiveMax = 1 / (1 + objectiveMin)
-  return objectiveMax
+  return objectiveMin
 
 # Stage 3 : Decoding
 def decoding(bounds, bits, chromosome):
   realChromosome = list() #empty sequence
   for i in range(len(bounds)):
     st, en = i * bits, (i*bits) + bits #extract the chromosome
-    sub = chromosome[st:en]
-    chars = ''.join([str(s) for s in sub]) #convert to chars
-    integer = int(chars, 2) #convert to integer
+    sub = chromosome[st:en] #chromosome
+    chars = ''.join([str(s) for s in sub]) #convert to chars(be ezaye har kodam az 0 va 1 ha tabdil be string karde)
+    integer = int(chars, 2) #convert to integer => string ra be mabnaye 2 borde
     realValue = bounds[i][0] + (integer / (2**bits)) * (bounds[i][1] - bounds[i][0])
     realChromosome.append(realValue)
   return realChromosome
@@ -38,9 +37,9 @@ def selection(pop, fitness, popSize):
   nextGeneration = list() #empty sequence
   elite = np.argmax(fitness) #argmax => return indices of maximum value along an axis
   nextGeneration.append(pop[elite]) #keep the best
-  P = [f / sum(fitness) for f in fitness]
+  P = [f / sum(fitness) for f in fitness] #ehtemale entekhab sigma
   index = list(range(int(len(pop))))
-  indexSelected = np.random.choice(index, size = popSize - 1, replace = False, p = P) #choice => generate a random sample of a given 1-d array
+  indexSelected = np.random.choice(index, size = popSize, replace = False, p = P) #choice => generate a random sample of a given 1-d array
   s = 0
   for j in range(popSize - 1):
     nextGeneration.append(pop[indexSelected[s]])
@@ -106,14 +105,15 @@ for gen in range(iteration):
 
   index = np.argmax(fitness)
   currentBest = pop[index]
-  bestFitness.append(1 / max(fitness) - 1)
+  bestFitness.append(max(fitness)) #max har nasl
   pop = selection(pop, fitness, popSize)
 
+plt.style.use('fivethirtyeight')
 fig = plt.figure()
 plt.plot(bestFitness)
-fig.suptitle("Evolution of the best chromosome")
+fig.suptitle("Evolution of the best chromosome") #tozihe shekl
 plt.xlabel("Iteration")
 plt.ylabel("Objective function value")
 plt.show()
-print("Max objective function value: ", max(bestFitness))
+print("Max objective function value: ", max(bestFitness)) #beine tamame nasl ha
 print("Optimal solution", decoding(bounds, bits, currentBest))
